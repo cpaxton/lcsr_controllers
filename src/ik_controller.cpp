@@ -9,6 +9,7 @@
 #include <kdl_parser/kdl_parser.hpp>
 
 #include <rtt_rosparam/rosparam.h>
+#include <rtt_rosclock/rtt_rosclock.h>
 
 #include <tf_conversions/tf_kdl.h>
 
@@ -141,7 +142,7 @@ bool IKController::configureHook()
   }
 
   trajectory_msgs::JointTrajectoryPoint single_point;
-  single_point.time_from_start = ros::Duration(0.005);
+  single_point.time_from_start = ros::Duration(0.00);
   single_point.positions.resize(n_dof_);
   single_point.velocities.resize(n_dof_);
   std::fill(single_point.positions.begin(),single_point.positions.end(),0.0);
@@ -253,7 +254,7 @@ void IKController::updateHook()
 
   // Send traj target
   if(trajectories_out_port_.connected()) {
-    trajectory_.header.stamp = ros::Time(0,0);//rtt_ros_tools::ros_rt_now() + ros::Duration(1.0);
+    trajectory_.header.stamp = rtt_rosclock::host_rt_now();
 
     for(size_t i=0; i<n_dof_; i++) {
       trajectory_.points[0].positions[i] = positions_des_.q(i);
