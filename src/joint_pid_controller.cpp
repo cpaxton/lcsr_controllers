@@ -63,8 +63,6 @@ bool JointPIDController::configureHook()
   // ROS parameters
   boost::shared_ptr<rtt_rosparam::ROSParam> rosparam =
     this->getProvider<rtt_rosparam::ROSParam>("rosparam");
-  // Get absoluate parameters
-  //rosparam->getAbsolute("robot_description");
   // Get private parameters
   rosparam->getComponentPrivate("root_link");
   rosparam->getComponentPrivate("tip_link");
@@ -155,6 +153,7 @@ void JointPIDController::updateHook()
   }
 
   if(joint_position_.size() != n_dof_ || joint_velocity_.size() != n_dof_ ) {
+    RTT::log(RTT::Error) << "["<<this->getName()<<"] Joint position or velocity input to PID controller is not the right dimension. (should be "<<n_dof_<<")" << RTT::endlog();
     this->error();
     return;
   }
@@ -170,6 +169,7 @@ void JointPIDController::updateHook()
   }
 
   if(joint_position_cmd_.size() != n_dof_ || joint_velocity_cmd_.size() != n_dof_ ) {
+    RTT::log(RTT::Error) << "["<<this->getName()<<"] Joint position cmd or velocity cmd input to PID controller is not the right dimension. (should be "<<n_dof_<<")" << RTT::endlog();
     this->error();
     return;
   }
