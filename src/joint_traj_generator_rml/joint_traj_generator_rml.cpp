@@ -107,12 +107,16 @@ bool JointTrajGeneratorRML::configureHook()
     rosparam = this->getProvider<rtt_rosparam::ROSParam>("rosparam");
     
     // Only get kinematics from robot description if n_dof_ hasn't been set
-    //rosparam->getAbsolute("robot_description");
     rosparam->getComponentPrivate("n_dof");
     rosparam->getComponentPrivate("root_link");
     rosparam->getComponentPrivate("tip_link");
+
     rosparam->getComponentPrivate("robot_description_param");
-    rosparam->getParam(robot_description_param_,"robot_description");
+    rosparam->getParam(robot_description_param_, "robot_description");
+    if(robot_description_.length() == 0) {
+      RTT::log(RTT::Error) << "No robot description! Reading from parameter \"" << robot_description_param_ << "\"" << RTT::endlog();
+      return false;
+    }
   }
 
   // Initialize kinematics (KDL tree, KDL chain, and #DOF) from urdf
@@ -237,6 +241,12 @@ bool JointTrajGeneratorRML::startHook()
   joint_velocity_.setZero();
   joint_velocity_last_.setZero();
   joint_acceleration_.setZero();
+
+  joint_position_in_.clear();
+  joint_velocity_in_.clear();
+  joint_position_cmd_in_.clear();
+  joint_traj_point_cmd_in_.clear();
+  joint_traj_cmd_in_.clear();
 
   return true;
 }
@@ -642,7 +652,7 @@ bool JointTrajGeneratorRML::updateSegments(
       // Offset the NTP-corrected time to get the RTT-time
       // Correct the timestamp so that its relative to the realtime clock
       // TODO: make it so this can be disabled or make two different ports
-      new_traj_start_time = trajectory.header.stamp - ros::Duration(rtt_rosclock::host_rt_offset_from_rtt());
+      new_traj_start_time = trajectory.header.stamp + (rtt_rosclock::rtt_now() - rtt_rosclock::host_now());
     }
 
     // Get the proper index permutation
@@ -820,7 +830,7 @@ void JointTrajGeneratorRML::updateHook()
     if(ros_publish_throttle_.ready(0.02)) 
     {
       // Publish controller desired state
-      joint_state_desired_.header.stamp = rtt_rosclock::host_rt_now();
+      joint_state_desired_.header.stamp = rtt_rosclock::host_now();
       joint_state_desired_.position.resize(n_dof_);
       joint_state_desired_.velocity.resize(n_dof_);
       std::copy(joint_position_sample_.data(), joint_position_sample_.data() + n_dof_, joint_state_desired_.position.begin());

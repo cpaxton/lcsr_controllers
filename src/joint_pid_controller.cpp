@@ -68,6 +68,10 @@ bool JointPIDController::configureHook()
   rosparam->getComponentPrivate("tip_link");
   rosparam->getComponentPrivate("robot_description_param");
   rosparam->getParam(robot_description_param_, "robot_description");
+  if(robot_description_.length() == 0) {
+    RTT::log(RTT::Error) << "No robot description! Reading from parameter \"" << robot_description_param_ << "\"" << RTT::endlog();
+    return false;
+  }
 
   // Initialize kinematics (KDL tree, KDL chain, and #DOF)
   urdf::Model urdf_model;
